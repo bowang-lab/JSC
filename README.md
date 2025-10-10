@@ -1,6 +1,6 @@
 # nnUNetCLS
 
-nnUNetCLS is a Python-based project that extends the nnUNet framework with joint segmentation and classification capabilities. It combines the power of nnUNet's segmentation architecture with multi-class classification, making it ideal for medical imaging tasks that require both pixel-level segmentation and image-level classification predictions.
+nnSegClass is a Python-based project that extends the nnUNet framework with joint segmentation and classification capabilities. It combines the power of nnUNet's segmentation architecture with multi-class classification, making it ideal for medical imaging tasks that require both pixel-level segmentation and image-level classification predictions.
 
 ## Features
 
@@ -133,6 +133,18 @@ python nnunet_cls_infer_nii.py \
     --cls_mode mean
 ```
 
+For 5-fold ensemble inference should run segcls_ensemble_infer.py instead
+
+```bash
+python segcls_ensemble_infer.py \
+    --input_path /path/to/input/images/ \
+    --output_path /path/to/output/ \
+    --model_path /path/to/trained/model \
+    --fold all \
+    --checkpoint checkpoint_best.pth \
+    --device cuda \
+    --cls_mode mean
+```
 **Arguments:**
 - `--input_path, -i`: Directory containing input NIfTI images (expects `*_000X.nii.gz` naming convention)
 - `--output_path, -o`: Directory to save segmentation masks and classification results
