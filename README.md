@@ -1,6 +1,6 @@
-# nnSegClass
+# JSC
 
-nnSegClass is a Python-based project that extends the nnUNet framework with joint segmentation and classification capabilities. It combines the power of nnUNet's segmentation architecture with multi-class classification, making it ideal for medical imaging tasks that require both pixel-level segmentation and image-level classification predictions.
+JSC is a Python-based project that extends the nnUNet framework with joint segmentation and classification capabilities. It combines the power of nnUNet's segmentation architecture with binary / multi-class classification, making it ideal for medical imaging tasks that require both pixel-level segmentation and image-level classification predictions.
 
 ## Features
 
@@ -12,15 +12,16 @@ nnSegClass is a Python-based project that extends the nnUNet framework with join
 
 ## Installation
 
-To set up nnUNetCLS, first install the required dependencies:
+To set up JSC, first install the required dependencies:
 
 ```bash
 pip install wandb
+pip install torchmetrics
 pip install -e .
 ```
 
 ## Configure nnUNet Paths
-Before using nnUNetCLS, you need to configure the nnUNet environment paths. Modify the paths in nnunetv2/paths.py to point to your desired directories:
+Before using JSC, you need to configure the nnUNet environment paths. Modify the paths in nnunetv2/paths.py to point to your desired directories:
 ```python
 # Edit nnunetv2/paths.py
 nnUNet_raw = "/path/to/your/nnUNet_raw"
@@ -33,7 +34,7 @@ nnUNet_results = "/path/to/your/nnUNet_results"
 
 ## Preprocessing with nnUNet
 
-nnUNetCLS relies on **nnUNet’s preprocessing pipeline** to standardize image spacing, intensity normalization, and patch extraction. Preprocessing must be completed before training or inference.  
+JSC relies on **nnUNet’s preprocessing pipeline** to standardize image spacing, intensity normalization, and patch extraction. Preprocessing must be completed before training or inference.  
 
 ### 1. Required Data Structure  
 
@@ -102,6 +103,8 @@ python generate_cls_data.py \
 - `test_data.csv`: Held-out test set (20% of data)
 - `splits_final.json`: 5-fold cross-validation splits with stratification
 - Automatic filtering of cases without segmentation data
+**Notes:**
+make sure `cls_data.csv` and `splits_final.json` are under nnUNet_preprocessed
 
 ### 2. Training
 
@@ -110,41 +113,24 @@ nnUNetv2_train 161 3d_fullres 0 -tr <TrainerName>
 nnUNetv2_train 714 3d_fullres all -p nnUNetResEncUNetMPlans
 ```
 **Notes:**
-for baseline cls support
-- MedNeXtTrainer
-- ViTTrainer
-- DenseNetTrainer
-- SEResNetTrainer
-- SwinViTTrainer
-define in nnunetv2/training/nnUNetTrainer/nnUNetCLSTrainer.py
+
 
 ### 3. Inference
 
 Run joint segmentation and classification inference on NIfTI images:
 
 ```bash
-python nnunet_cls_infer_nii.py \
-    --input_path /path/to/input/images/ \
-    --output_path /path/to/output/ \
-    --model_path /path/to/trained/model \
-    --fold all \
-    --checkpoint checkpoint_best.pth \
-    --device cuda \
-    --cls_mode mean
-```
-
-For 5-fold ensemble inference should run segcls_ensemble_infer.py instead
-
-```bash
 python segcls_ensemble_infer.py \
     --input_path /path/to/input/images/ \
     --output_path /path/to/output/ \
     --model_path /path/to/trained/model \
-    --fold all \
+    --fold 0 \ 
     --checkpoint checkpoint_best.pth \
     --device cuda \
     --cls_mode mean
 ```
+For 5-fold ensemble fold should set as (0,1,2,3,4)
+
 **Arguments:**
 - `--input_path, -i`: Directory containing input NIfTI images (expects `*_000X.nii.gz` naming convention)
 - `--output_path, -o`: Directory to save segmentation masks and classification results

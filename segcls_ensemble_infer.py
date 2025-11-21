@@ -182,6 +182,7 @@ class SimplePredictor(nnUNetPredictor):
                     safe_state_dict[k] = v
             parameters.append(safe_state_dict)
         configuration_manager = plans_manager.get_configuration(configuration_name)
+        self.cls_class_num = checkpoint['cls_class_num']
         # restore network
         num_input_channels = determine_num_input_channels(plans_manager, configuration_manager, dataset_json)
         trainer_class = recursive_find_python_class(join(nnunetv2.__path__[0], "training", "nnUNetTrainer"),
@@ -198,7 +199,8 @@ class SimplePredictor(nnUNetPredictor):
         num_input_channels,
         plans_manager.get_label_manager(dataset_json).num_segmentation_heads,
         enable_deep_supervision=False,
-        emb_dim=320
+        emb_dim=320,
+        cls_class_num=self.cls_class_num
         )
 
         self.plans_manager = plans_manager
@@ -281,7 +283,7 @@ class SimplePredictor(nnUNetPredictor):
                                            device=results_device)
             n_predictions = torch.zeros(data.shape[1:], dtype=torch.half, device=results_device)
             # TODO: The shape should be number of classes
-            class_logits = torch.zeros((1), dtype=torch.half, device=results_device)
+            class_logits = torch.zeros((self.cls_class_num), dtype=torch.half, device=results_device)
 
             if self.use_gaussian:
                 gaussian = compute_gaussian(tuple(self.configuration_manager.patch_size), sigma_scale=1. / 8,
