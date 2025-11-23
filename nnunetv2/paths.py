@@ -18,9 +18,9 @@ import os
 PLEASE READ documentation/setting_up_paths.md FOR INFORMATION TO HOW TO SET THIS UP
 """
 
-nnUNet_raw = '/home/jma/Documents/CY/cvpr26/nnUNet_data/nnUNet_raw'
-nnUNet_preprocessed = '/home/jma/Documents/CY/cvpr26/nnUNet_data/nnUNet_preprocessed'
-nnUNet_results = '/home/jma/Documents/CY/cvpr26/nnUNet_data/nnUNet_results'
+nnUNet_raw = '/nnUNet_data/nnUNet_raw'
+nnUNet_preprocessed = '/nnUNet_data/nnUNet_preprocessed'
+nnUNet_results = '/nnUNet_data/nnUNet_results'
 
 if nnUNet_raw is None:
     print("nnUNet_raw is not defined and nnU-Net can only be used on data for which preprocessed files "

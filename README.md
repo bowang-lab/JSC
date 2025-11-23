@@ -183,7 +183,7 @@ This project is licensed under the [Apache License 2.0](https://github.com/Ching
 
 ## Citation
 
-If you use nnUNetCLS in your research, please cite the original nnUNet paper and this extension.
+If you use JSC in your research, please cite the original nnUNet paper and this extension.
 
 ---
 
