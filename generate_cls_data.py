@@ -64,9 +64,7 @@ if __name__ == "__main__":
     # Define the output path
     output_path = args.output_path
     os.makedirs(output_path, exist_ok=True)
-    with open ('/home/jma/Documents/CY/cvpr26/hecktor25/Dataset723_hecktor25/no_segs.json') as f:
-        no_segs = json.load(f)
-    df = df[~df['PatientID'].isin(no_segs)]
+
     # Generate classification data
     generate_cls_data(df, args.identifier_column, args.label_column, n_splits=5, output_path=output_path)       
 
