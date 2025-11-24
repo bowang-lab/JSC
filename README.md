@@ -40,19 +40,24 @@ JSC relies on **nnUNet’s preprocessing pipeline** to standardize image spacing
 
 Your dataset must follow the **nnUNet folder convention**:  
 
+```text
 nnUNet_raw/
-└── Dataset<DATASET_ID>_<DATASET_NAME>/
-├── imagesTr/ # Training images (NIfTI format)
-│ ├── PatientID_0000.nii.gz # First modality (e.g., CT)
-│ ├── PatientID_0001.nii.gz # Second modality (e.g., MRI)
-│ └── ...
-├── labelsTr/ # Training labels (segmentation masks)
-│ ├── PatientID.nii.gz
-│ └── ...
-├── imagesTs/ # Test images (no labels required)
-│ ├── TestID_0000.nii.gz
-│ └── ...
-└── dataset.json # Dataset description file
+└── Dataset<ID>_<NAME>/
+    ├── dataset.json                # Dataset configuration file
+    ├── imagesTr/                   # Training images
+    │   ├── PatientID_0000.nii.gz   # Modality 1
+    │   ├── PatientID_0001.nii.gz   # Modality 2
+    │   └── ...
+    ├── labelsTr/                   # Training labels
+    │   ├── PatientID.nii.gz        # Matches PatientID (no _0000)
+    │   └── ...
+    ├── imagesTs/                   # Test images (Inference)
+    │   ├── TestID_0000.nii.gz
+    │   └── ...
+    └── labelsTs/                   # Test labels (Optional/Evaluation)
+        ├── TestID.nii.gz           # Matches TestID (no _0000)
+        └── ...
+```
 
 
 **Notes:**  
