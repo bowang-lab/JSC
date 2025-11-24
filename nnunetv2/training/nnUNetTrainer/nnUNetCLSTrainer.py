@@ -70,6 +70,7 @@ from nnunetv2.utilities.plans_handling.plans_handler import PlansManager
 from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
 from nnunetv2.training.loss.uncertainty_loss import JointUncertaintyLoss
 from sklearn import metrics
+from torchmetrics.functional import auroc
 import wandb
 from torch.optim.lr_scheduler import _LRScheduler
 import math, warnings
@@ -760,7 +761,7 @@ class nnUNetCLSTrainerMTL(nnUNetTrainer):
         all_labels = torch.tensor(outputs_collated['all_labels'])
         all_ids = outputs_collated['all_ids']
         if self.cls_class_num == 2:
-            auc_metric = auroc(all_probs.squeeze(1), all_labels, task="binary")#metrics.roc_auc_score(all_labels, all_probs)
+            auc_metric = auroc(all_probs, all_labels, task="binary")#metrics.roc_auc_score(all_labels, all_probs)
             classification_accuracy = metrics.accuracy_score(all_labels, all_preds)
             balanced_accuracy = metrics.balanced_accuracy_score(all_labels, all_preds)
         else:
@@ -806,7 +807,7 @@ class nnUNetCLSTrainerMTL(nnUNetTrainer):
             self.logger.my_fantastic_logging['val_auc'][-1]
         if self._best_ema is None or eval_metric > self._best_ema:
             self._best_ema = eval_metric
-            self.print_to_log_file(f"Yayy! New best EMA pseudo Dice: {np.round(self._best_ema, decimals=4)}")
+            self.print_to_log_file(f"Yayy! New best evaluation metric: {np.round(self._best_ema, decimals=4)}")
             self.save_checkpoint(join(self.output_folder, 'checkpoint_best.pth'))
             self.print_to_log_file("\nTask weights:")
             self.print_to_log_file(self.uncertainty_loss.get_task_weights())
