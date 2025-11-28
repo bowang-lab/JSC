@@ -400,7 +400,6 @@ class nnUNetCLSTrainerMTL(nnUNetTrainer):
                 project="JSC_cvpr26",
                 name=f"{self.__class__.__name__}_fold{self.fold}",
             )
-            self.num_iterations_per_epoch = 1
             # torch 2.2.2 crashes upon compiling CE loss
             # if self._do_i_compile():
             #     self.loss = torch.compile(self.loss)
