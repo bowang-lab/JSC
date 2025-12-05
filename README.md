@@ -115,7 +115,11 @@ make sure `cls_data.csv` and `splits_final.json` are under nnUNet_preprocessed
 
 ```bash
 nnUNetv2_train 161 3d_fullres 0 -tr <TrainerName>
+# Use `nnUNetCLSTrainerMTL` for multi-task learning
+# Use `PretrainedMTL` for two-stage warm-up and pretrained fine-tuning
+
 nnUNetv2_train 714 3d_fullres all -p nnUNetResEncUNetMPlans
+
 ```
 **Notes:**
 
@@ -152,9 +156,23 @@ Images should follow nnUNet naming convention:
 - `PatientID_0001.nii.gz` (second modality)
 - etc.
 
-**Outputs:**
-- `{PatientID}.nii.gz`: Segmentation masks for each case
-- `results.csv`: Classification probabilities for all cases
+### **Outputs**
+
+- `{PatientID}.nii.gz`: Segmentation mask for each case  
+- `results.csv`: Classification predictions for all samples
+
+The **`results.csv`** file contains the model’s classification outputs:
+
+- **Binary classification:**  
+  The `probs` field contains a **single probability value** representing the predicted likelihood of the positive class.
+
+- **Multi-class classification:**  
+  The `probs` field contains a **list of probabilities**, one for each class (e.g., `[p0, p1, p2, p3]`).
+
+**Columns:**
+- `identifier`: Unique sample ID  
+- `probs`: Predicted probability (binary) or probability vector (multi-class)
+
 
 ### 4. Key Features
 

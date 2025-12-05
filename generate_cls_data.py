@@ -3,7 +3,7 @@ import json
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold, StratifiedGroupKFold, train_test_split
 
-def generate_cls_data(df, identifier_column, label_column, n_splits, output_path):
+def generate_cls_data(df, identifier_column, label_column, n_splits, output_path, age_column=None, gender_column=None):
     identifiers = df[identifier_column].tolist()
     labels = df[label_column].tolist()
     cls_data = pd.DataFrame({
@@ -11,9 +11,14 @@ def generate_cls_data(df, identifier_column, label_column, n_splits, output_path
         'label': labels
     })
     cls_data.to_csv(os.path.join(output_path, 'cls_data.csv'), index=False)
-    df['age_bin'] = pd.qcut(df['Age_at_StudyDate'], q=4, labels=False)
-    df['stratify_col'] = df['Gender'].astype(str) + '_' + df['age_bin'].astype(str) +\
-        '_' + df[label_column].astype(str)
+    df['stratify_col'] = df[label_column].astype(str)
+    if age_column is not None and gender_column is not None:
+        df['age_bin'] = pd.qcut(df[age_column], q=4, labels=False)
+        df['stratify_col'] = df['stratify_col'] + '_' + df['age_bin'].astype(str)
+
+    if gender_column is not None:
+        df['stratify_col'] = df['stratify_col'] + '_' + df[gender_column].astype(str)
+
     # df['stratify_col'] = df[label_column].astype(str)
     train_df, test_df = train_test_split(df, test_size=0.2, stratify=df['stratify_col'], random_state=42)
     # train_df['stratify_col'] = train_df['tumor_subtype'].astype(str) + \
@@ -51,6 +56,8 @@ if __name__ == "__main__":
     argparser.add_argument('--output_path', '-o', type=str, required=True, help='Path to save the classification data and splits')
     argparser.add_argument('--identifier_column', '-id', type=str, default='patient_id', help='Column name for patient identifiers')
     argparser.add_argument('--label_column', '-label', type=str, default='label', help='Column name for classification labels')
+    argparser.add_argument('--age_column', '-age', type=str, default=None, help='Column name for age')
+    argparser.add_argument('--gender_column', '-gender', type=str, default=None, help='Column name for gender')
     args = argparser.parse_args()
 
     # Load the dataset
@@ -66,7 +73,7 @@ if __name__ == "__main__":
     os.makedirs(output_path, exist_ok=True)
 
     # Generate classification data
-    generate_cls_data(df, args.identifier_column, args.label_column, n_splits=5, output_path=output_path)       
+    generate_cls_data(df, args.identifier_column, args.label_column, n_splits=5, output_path=output_path, age_column=args.age_column, gender_column=args.gender_column)       
 
 
 
