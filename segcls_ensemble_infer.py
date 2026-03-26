@@ -192,6 +192,7 @@ class SimplePredictor(nnUNetPredictor):
             raise RuntimeError(f'Unable to locate trainer class {trainer_name} in nnunetv2.training.nnUNetTrainer. '
                                f'Please place it there (in any .py file)!')
 
+        cls_head_output = self.cls_class_num if self.cls_class_num > 2 else 1
         network = trainer_class.build_network_architecture(
         configuration_manager.network_arch_class_name,
         configuration_manager.network_arch_init_kwargs,
@@ -200,7 +201,7 @@ class SimplePredictor(nnUNetPredictor):
         plans_manager.get_label_manager(dataset_json).num_segmentation_heads,
         enable_deep_supervision=False,
         emb_dim=320,
-        cls_class_num=self.cls_class_num
+        cls_class_num=cls_head_output
         )
 
         self.plans_manager = plans_manager

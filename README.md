@@ -200,6 +200,160 @@ The framework extends nnUNet with:
 - Feature aggregation from the final encoder stage
 - Support for both binary and multi-class classification
 
+## Evaluation
+
+Use `eval_metrics.py` to compute segmentation and classification metrics after inference:
+
+```bash
+python eval_metrics.py \
+    --pred_seg_path /path/to/predicted/segmentations \
+    --gt_seg_path /path/to/ground_truth/segmentations \
+    --pred_cls_csv /path/to/fold0_results.csv \
+    --gt_cls_csv /path/to/ground_truth_cls.csv \
+    --num_seg_classes 2 \
+    --num_cls_classes 2   # 2 for binary, 3+ for multi-class
+```
+
+**Segmentation Metrics:**
+- DSC (Dice Similarity Coefficient): mean +/- std, per-class
+- NSD (Normalized Surface Distance, tau=1.0mm): mean +/- std, per-class
+
+**Classification Metrics (Binary):**
+- Accuracy, AUC, AUPRC, Sensitivity, Specificity, Precision, Recall, F1
+
+**Classification Metrics (Multi-class):**
+- Accuracy, Balanced Accuracy, Weighted AUC, Weighted AUPRC, Weighted F1, Weighted Precision, Weighted Recall
+- Per-class: Precision, Recall, F1, AUC, AUPRC
+- Confusion matrix
+
+## Claude Code Skills
+
+JSC provides three Claude Code slash-command skills (`/preprocess`, `/train`, `/eval`) for interactive, guided workflows. Each skill follows a **config-driven** approach: Claude presents a YAML config template with sensible defaults, you customize the values for your experiment, and Claude validates everything before executing.
+
+### Prerequisites
+
+- [Claude Code](https://claude.com/claude-code) CLI installed
+- Working directory set to the JSC project root
+
+### How It Works
+
+Each skill takes the **path to a YAML config file** as its argument:
+
+```
+/preprocess configs/my_preprocess.yaml
+/train configs/my_train.yaml
+/eval configs/my_eval.yaml
+```
+
+1. **Copy an example config** from the `configs/` directory
+2. **Edit the YAML** to match your experiment (dataset ID, paths, trainer, etc.)
+3. **Run the skill** with the path to your config
+4. Claude reads the config, validates all prerequisites, executes the pipeline step, and checks the output
+
+### Config Files
+
+Example configs are provided in the `configs/` directory. Copy one and edit it for your experiment:
+
+```bash
+# Copy and customize for your experiment
+cp configs/preprocess_example.yaml configs/my_preprocess.yaml
+cp configs/train_example.yaml configs/my_train.yaml
+cp configs/eval_example.yaml configs/my_eval.yaml
+```
+
+#### `configs/preprocess_example.yaml`
+
+```yaml
+dataset_id: 3                          # Dataset ID number
+dataset_name: "T1c_crop"               # Must match folder: Dataset{ID}_{name}
+nnunet_raw: "/path/to/nnUNet_raw"
+nnunet_preprocessed: "/path/to/nnUNet_preprocessed"
+nnunet_results: "/path/to/nnUNet_results"
+configuration: "3d_fullres"            # 3d_fullres | 2d
+planner: "nnUNetPlanner"               # nnUNetPlanner | nnUNetPlannerResEncM/L/XL
+verify_integrity: true
+cls_data:                              # optional, skip if cls_data.csv exists
+  input_csv: ""
+  identifier_column: "patient_id"
+  label_column: "label"
+  age_column: null
+  gender_column: null
+```
+
+#### `configs/train_example.yaml`
+
+```yaml
+dataset_id: 4                          # e.g. 4 for binary, 5 for multi-class
+configuration: "3d_fullres"            # 3d_fullres | 2d
+fold: 0                                # 0-4 or "all"
+trainer: "nnUNetCLSTrainerMTL"         # nnUNetCLSTrainerMTL | PretrainedMTL
+plan: "nnUNetPlans"                    # nnUNetPlans | nnUNetResEncUNetM/L/XLPlans
+nnunet_raw: "/path/to/nnUNet_raw"
+nnunet_preprocessed: "/path/to/nnUNet_preprocessed"
+nnunet_results: "/path/to/nnUNet_results"
+device: "cuda"
+num_gpus: 1
+continue_training: false
+pretrained_weights: ""                 # required for PretrainedMTL
+```
+
+#### `configs/eval_example.yaml`
+
+```yaml
+model_path: ""                         # path to trained model dir
+input_path: ""                         # path to test images ({ID}_0000.nii.gz)
+output_path: ""                        # path to save predictions
+ground_truth_seg_path: ""              # path to GT segmentation labels
+ground_truth_cls_csv: ""               # path to GT classification CSV
+fold: "0"                              # "0" or "0,1,2,3,4" or "all"
+checkpoint: "checkpoint_best.pth"
+device: "cuda"
+cls_mode: "mean"                       # mean | weighted
+use_softmax: false
+num_seg_classes: 2                     # including background
+num_cls_classes: 2                     # 2=binary, >2=multi-class
+```
+
+### Example Workflow
+
+```bash
+cd /path/to/JSC
+claude
+
+# Step 1: Preprocess a new dataset
+> /preprocess configs/my_preprocess.yaml
+
+# Step 2: Train a model
+> /train configs/my_train.yaml
+
+# Step 3: Evaluate results
+> /eval configs/my_eval.yaml
+```
+
+### Available Trainers
+
+| Trainer | Description |
+|---------|-------------|
+| `nnUNetCLSTrainerMTL` | Joint segmentation-classification multi-task learning |
+| `PretrainedMTL` | Two-stage warm-up with pretrained encoder fine-tuning |
+
+### Available Plans
+
+| Plan | Description |
+|------|-------------|
+| `nnUNetPlans` | Default nnUNet planner (PlainConvUNet) |
+| `nnUNetResEncUNetMPlans` | Residual encoder, medium |
+| `nnUNetResEncUNetLPlans` | Residual encoder, large |
+| `nnUNetResEncUNetXLPlans` | Residual encoder, extra-large |
+
+### Test Datasets
+
+| Dataset | Path | Type | Classes |
+|---------|------|------|---------|
+| Dataset003_T1c_crop | `nnUNet_raw/Dataset003_T1c_crop` | Raw (for preprocessing test) | -- |
+| Dataset004_T1c_crop_2class | `nnUNet_preprocessed/Dataset004_T1c_crop_2class` | Binary classification | 0, 1 |
+| Dataset005_T1c_crop_3class | `nnUNet_preprocessed/Dataset005_T1c_crop_3class` | Multi-class classification | 0, 1, 2 |
+
 ## License
 
 This project is licensed under the [Apache License 2.0](https://github.com/ChingYuanYu/nnunetcls/blob/main/LICENSE).

@@ -1,0 +1,15 @@
+# --- Eval Config ---
+model_path: ""                         # path to trained model dir (e.g. .../PretrainedMTL__nnUNetResEncUNetLPlans__3d_fullres)
+input_path: ""                         # path to test images (nnUNet naming: {ID}_0000.nii.gz)
+output_path: ""                        # path to save predictions
+ground_truth_seg_path: ""              # path to ground truth segmentation labels (.nii.gz)
+ground_truth_cls_csv: ""               # path to ground truth classification CSV (columns: identifier, label)
+fold: "0"                              # comma-separated folds (e.g. "0,1,2,3,4") or "all"
+checkpoint: "checkpoint_best.pth"      # checkpoint_best.pth | checkpoint_final.pth
+device: "cuda"                         # cuda | cpu
+cls_mode: "mean"                       # mean | weighted
+use_softmax: false
+
+# Metric options
+num_seg_classes: 2                     # number of segmentation classes (including background)
+num_cls_classes: 2                     # 2 for binary, >2 for multi-class

@@ -1,0 +1,17 @@
+# --- Preprocess Config ---
+dataset_id: 3                          # Dataset ID number
+dataset_name: "T1c_crop"               # Must match folder: Dataset{ID}_{name}
+nnunet_raw: "/home/jma/Documents/CY/cvpr26/JSC/nnUNet_data/nnUNet_raw"
+nnunet_preprocessed: "/home/jma/Documents/CY/cvpr26/JSC/nnUNet_data/nnUNet_preprocessed"
+nnunet_results: "/home/jma/Documents/CY/cvpr26/JSC/nnUNet_data/nnUNet_results"
+configuration: "3d_fullres"            # 3d_fullres | 2d
+planner: "nnUNetPlanner"               # nnUNetPlanner | nnUNetPlannerResEncM | nnUNetPlannerResEncL | nnUNetPlannerResEncXL
+verify_integrity: true                 # run --verify_dataset_integrity
+
+# Classification data generation (optional, skip if cls_data.csv already exists)
+cls_data:
+  input_csv: ""                        # path to clinical CSV/Excel with patient info
+  identifier_column: "patient_id"      # column for patient IDs
+  label_column: "label"                # column for classification labels
+  age_column: null                     # optional: column for age stratification
+  gender_column: null                  # optional: column for gender stratification

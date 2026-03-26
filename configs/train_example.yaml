@@ -1,0 +1,15 @@
+# --- Train Config ---
+dataset_id: 4                          # e.g. 4 for binary, 5 for multi-class
+configuration: "3d_fullres"            # 3d_fullres | 2d
+fold: 0                                # 0-4 for individual fold, or "all"
+trainer: "nnUNetCLSTrainerMTL"         # nnUNetCLSTrainerMTL | PretrainedMTL
+plan: "nnUNetPlans"                    # nnUNetPlans | nnUNetResEncUNetMPlans | nnUNetResEncUNetLPlans | nnUNetResEncUNetXLPlans
+nnunet_raw: "/home/jma/Documents/CY/cvpr26/JSC/nnUNet_data/nnUNet_raw"
+nnunet_preprocessed: "/home/jma/Documents/CY/cvpr26/JSC/nnUNet_data/nnUNet_preprocessed"
+nnunet_results: "/home/jma/Documents/CY/cvpr26/JSC/nnUNet_data/nnUNet_results"
+
+# Optional
+device: "cuda"                         # cuda | cpu
+num_gpus: 1                            # for DDP multi-gpu training
+continue_training: false               # resume from latest checkpoint
+pretrained_weights: ""                 # path to pretrained checkpoint (for PretrainedMTL)
