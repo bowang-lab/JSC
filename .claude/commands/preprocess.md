@@ -59,6 +59,12 @@ Use the `.venv/bin/` executables in the project root.
 2. `nnUNetPlans.json` (or planner-specific plans JSON) was created
 3. Configuration subfolder (e.g. `nnUNetPlans_3d_fullres/`) contains `.b2nd`, `.pkl`, `_seg.b2nd` files
 
-### 5. Classification data (optional)
+### 5. Classification data
 
-If `cls_data.input_csv` is provided and non-empty, run `generate_cls_data.py` and verify `cls_data.csv` and `splits_final.json` are placed under the preprocessed folder.
+Check if `cls_data.csv` already exists in the raw dataset folder (`{nnunet_raw}/Dataset{dataset_id:03d}_{dataset_name}/cls_data.csv`).
+
+- **If it exists:** Copy `cls_data.csv` from the raw dataset folder to the preprocessed dataset folder (`{nnunet_preprocessed}/Dataset{dataset_id:03d}_{dataset_name}/cls_data.csv`). Also copy `splits_final.json` and `test_data.csv` if they exist alongside it in the raw folder.
+
+- **If it does NOT exist:** Check whether `cls_data.input_csv` is provided and non-empty in the config. If so, run `generate_cls_data.py` with the configured `input_csv`, `identifier_column`, `label_column`, and optional `age_column`/`gender_column` to generate `cls_data.csv`, `splits_final.json`, and `test_data.csv` under the preprocessed folder. If `cls_data.input_csv` is also missing or empty, report that no classification data source was found and skip this step.
+
+In either case, verify that `cls_data.csv` and `splits_final.json` exist under the preprocessed folder after this step completes.
