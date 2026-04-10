@@ -174,6 +174,75 @@ The **`results.csv`** file contains the model’s classification outputs:
 - `probs`: Predicted probability (binary) or probability vector (multi-class)
 
 
+### 3b. Baseline Model Inference API (`baseline_infer.py`)
+
+`baseline_infer.py` wraps the six JSC_challenge baseline models as plain Python functions so they can be imported from a gradio app (e.g. HuggingFace Spaces). Each function loads **fold 0** `checkpoint_best.pth` of its corresponding model, runs MTL seg+cls inference on a single case, and returns:
+
+1. **Segmentation mask** — path to a NIfTI file written to `output_dir`.
+2. **Overlay video** — path to an H.264 mp4 that iterates axial slices of the first modality with the predicted segmentation colour-overlaid (piped through system `ffmpeg`, so it plays in browsers / QuickTime).
+3. **Classification results** — `dict` of the form `{task_name: {class_name: probability}}`, using the human-readable class names from `dataset.json["classification_labels"]`.
+
+**Function signatures** (all share the same signature):
+
+```python
+from baseline_infer import (
+    infer_dataset002_bmlmps_flair,
+    infer_dataset003_bmlmps_t1ce,
+    infer_dataset004_brainmets,
+    infer_dataset005_mu_glioma_post,
+    infer_dataset006_jsc_ucsd_ptgb,
+    infer_dataset007_picai,
+)
+
+seg_path, video_path, cls_results = infer_dataset007_picai(
+    image=["t2w.nii.gz", "adc.nii.gz", "hbv.nii.gz"],  # one path per modality, in dataset.json channel order
+    output_dir="./out",
+    device="cuda",   # or "cpu"
+    fold=0,
+)
+# cls_results -> {"ISUP_grade": {"Benign/Indolent": 0.63, "ISUP 1": 0.26, ...}}
+```
+
+**Supported datasets**
+
+| Function | Dataset | Modalities (channel order) | Classification task |
+|---|---|---|---|
+| `infer_dataset002_bmlmps_flair` | Dataset002_BMLMPS_FLAIR | FLAIR | `egfr_status`: Wild-Type / Mutation |
+| `infer_dataset003_bmlmps_t1ce` | Dataset003_BMLMPS_T1CE | T1CE | `egfr_status`: Wild-Type / Mutation |
+| `infer_dataset004_brainmets` | Dataset004_BrainMets | T1, T1c, T2, FLAIR, CT, RTP | `primary_tumor_origin`: NSCLC / Breast carcinoma / Unknown |
+| `infer_dataset005_mu_glioma_post` | Dataset005_MU_Glioma_Post | t1c, t1n, t2f, t2w | `primary_diagnosis`: GBM / Astrocytoma / Others |
+| `infer_dataset006_jsc_ucsd_ptgb` | Dataset006_JSC_UCSD_PTGB | T1post, FLAIR, ADC | `idh_mutation_status`: IDH Wild-Type / IDH Mutant / Unknown |
+| `infer_dataset007_picai` | Dataset007_PICAI | T2W, ADC, HBV | `ISUP_grade` (6-class) |
+
+Dataset004 and Dataset006 were trained with an extra **Unknown** bucket for `-1`/masked training labels, so their classifier heads emit 3 probabilities even though `dataset.json` only names 2 classes — the wrapper maps the extra index to `"Unknown"` automatically.
+
+**Model paths**
+
+The functions read model checkpoints from:
+
+```text
+/mnt/pool/datasets/CY/JSC_challenge/baseline_models/<Dataset>/<plans_folder>/fold_0/checkpoint_best.pth
+```
+
+Missing `classification_labels` in the shipped `dataset.json` are recovered from `/mnt/pool/datasets/CY/AutoMSC_raw/<Dataset>/dataset.json`. Update `BASELINE_ROOT` / `RAW_ROOT` at the top of `baseline_infer.py` if your paths differ.
+
+**CLI**
+
+`baseline_infer.py` also exposes a thin CLI for one-off runs:
+
+```bash
+python baseline_infer.py \
+    --dataset Dataset007_PICAI \
+    --input t2w.nii.gz adc.nii.gz hbv.nii.gz \
+    --output_dir ./out \
+    --device cuda
+```
+
+**Dependencies**
+
+- Everything already required by JSC (torch, nnunetv2, SimpleITK, opencv, etc.)
+- System `ffmpeg` on `PATH` for H.264 mp4 output. If `ffmpeg` is missing, `_write_overlay_video` falls back to OpenCV's `mp4v` writer (many browsers won't play those files).
+
 ### 4. Key Features
 
 **Stratified Cross-Validation:**
